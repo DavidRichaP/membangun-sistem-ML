@@ -1,0 +1,43 @@
+name: dicoding sistem ML pipeline CI
+
+on: 
+  push:
+    branches: ["main"]
+jobs:
+  development-checks:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+    
+    steps:
+    # clones repository files to github VM
+      - name: clone repository code
+        uses: actions/checkout@v4
+
+    # installs all dependencies
+      - name: Install project dependencies on miniconda and conda environment
+        uses: conda-incubator/setup-miniconda@v3
+        with: 
+          activate-environment: mlflow-env
+          environment-file: workflow-ci/mlproject/conda.yaml
+          auto-activate-base: false
+
+      - name: run modelling script
+        shell: bash -el {0}
+        run: |
+          cd workflow-ci/mlproject
+          python modelling.py
+
+      - name: save mlruns to repo
+        run: |
+          git config --global user.name "${{ secrets.username }}"
+          git config --global user.email "${{ secrets.email }}"
+          git add workflow-ci/mlproject/mlruns/
+
+          if ! git diff --cached --quiet; then
+            git commit -m "save mlruns from CI run [skip ci]"
+            git push origin main
+          else
+            echo "no new mlflow tracking changes detected. skipping commit"
+          fi
