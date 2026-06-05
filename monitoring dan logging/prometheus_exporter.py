@@ -72,7 +72,7 @@ class MonitoredWrapper(mlflow.pyfunc.PythonModel):
 if __name__ == "__main__":
     print("memulai pembacaan model")
     # arahkan variabel ini ke path dari ID run yang ingin digunakan
-    AUTOLOG_MODEL_URI = "./mlruns/968791154692521892/e55626dec82a478d81efdd26b9f03913/artifacts/model"
+    AUTOLOG_MODEL_URI = "./mlruns/models/968791154692521892/e55626dec82a478d81efdd26b9f03913/artifacts/model"
 
     # Instantiate our wrapper
     wrapped_model = MonitoredWrapper(autolog_model_uri=AUTOLOG_MODEL_URI)
