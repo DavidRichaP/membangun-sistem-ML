@@ -32,8 +32,11 @@ class MonitoredWrapper(mlflow.pyfunc.PythonModel):
                                      )
 
         # adds histogram for each prediction's latency
+        custom_buckets = (0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0)
+
         self.latency_histogram = Histogram('model_prediction_latency_seconds',
-                                           'Inference execution latency duration'
+                                           'Inference execution latency duration',
+                                           buckets=custom_buckets
                                            )
 
         # counts total model error
@@ -64,9 +67,11 @@ class MonitoredWrapper(mlflow.pyfunc.PythonModel):
             # Your original prediction logic
             predictions = self.model.predict(model_input)
 
-            # 2. NEW METRIC: Track output prediction (Prediction Drift Proxy)
+            # Calculate the overall positive ratio of the whole batch
             if len(predictions) > 0:
-                self.quality_gauge.set(float(predictions[0]))
+                import numpy as np
+                batch_average = np.mean(predictions)  # e.g., 0.85 means 85% positive
+                self.quality_gauge.set(float(batch_average))
 
             return predictions
 
