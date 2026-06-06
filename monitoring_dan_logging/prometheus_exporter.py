@@ -19,32 +19,46 @@ class MonitoredWrapper(mlflow.pyfunc.PythonModel):
             print("--> Prometheus exporter already active on port 8000")
 
         # custom monitoring metrics
-        self.prediction_counter = Counter('model_predictions_total',
-                                          'Total inferences served'
-                                          )
 
+        # counts individual rows
+        self.prediction_counter = Counter(
+            'model_prediction_count_total',
+            'Total number of individual text reviews processed by the model'
+        )
+
+        # counts batch inferences made
+        self.batch_counter = Counter('model_batches_total',
+                                     'Total batch request inference served'
+                                     )
+
+        # adds histogram for each prediction's latency
         self.latency_histogram = Histogram('model_prediction_latency_seconds',
                                            'Inference execution latency duration'
                                            )
 
+        # counts total model error
         self.error_counter = Counter('model_errors_total', 'Total inference crashes')
 
+        # gauges incoming feature
         self.alcohol_gauge = Gauge('incoming_feature_alcohol_value',
                                    'snapshot of the alcohol feature value from the latest request row'
                                    )
 
+        # gauges predicted quality value
         self.quality_gauge = Gauge('model_predicted_quality_value',
                                    'snapshot of the average predicted wine quality from the latest batch'
                                    )
 
     def predict(self, context, model_input):
         start_time = time.time()
-        self.prediction_counter.inc()
+
+        batch_size = model_input.shape[0] if hasattr(model_input, 'shape') else len(model_input)
+        self.prediction_counter.inc(batch_size)
 
         try:
             # 1. NEW METRIC: Track input feature (Data Drift Proxy)
             # Grabs the last row of the 'alcohol' column from the incoming DataFrame
-            if 'alcohol' in model_input.columns:
+            if hasattr(model_input, 'columns') and 'alcohol' in model_input.columns:
                 self.alcohol_gauge.set(float(model_input['alcohol'].iloc[-1]))
 
             # Your original prediction logic
@@ -65,8 +79,6 @@ class MonitoredWrapper(mlflow.pyfunc.PythonModel):
             # Ensures latency is recorded even if things went wrong
             duration = time.time() - start_time
             self.latency_histogram.observe(duration)
-
-        return predictions
 
 
 if __name__ == "__main__":
