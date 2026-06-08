@@ -16,18 +16,22 @@ jobs:
         uses: actions/checkout@v4
 
     # installs all dependencies
-      - name: Install project dependencies on miniconda and conda environment
+      - name: miniconda setup
         uses: conda-incubator/setup-miniconda@v3
         with: 
-          activate-environment: mlflow-env
-          environment-file: workflow-ci/mlproject/conda.yaml
-          auto-activate-base: false
+          auto-activate-base: true
+          python-version: "3.12.7"
 
-      - name: run modelling script
+      - name: install mlflow cli
+        shell: bash -el {0}
+        run: |
+          pip install mlflow
+
+      - name: run MLflow Project
         shell: bash -el {0}
         run: |
           cd workflow-ci/mlproject
-          python modelling.py
+          mlflow run . --env-manager=conda
 
       - name: save mlruns to repo
         run: |
