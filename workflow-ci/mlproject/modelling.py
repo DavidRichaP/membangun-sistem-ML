@@ -1,4 +1,5 @@
 import pandas as pd
+import os
 import mlflow
 import mlflow.sklearn
 from sklearn.model_selection import ParameterGrid, train_test_split
@@ -19,10 +20,6 @@ def hyperparam_tuning_autolog(training_source_path, target_col, n_est, max_depth
                                                         random_state=42)
 
     print("data split complete")
-    print("X_train size = ", X_train.shape)
-    print("y_train size = ", y_train.shape)
-    print("X_test size = ", X_test.shape)
-    print("y_test size = ", y_test.shape)
 
     # Define the hyperparameter grid
     param_grid = {
@@ -31,14 +28,26 @@ def hyperparam_tuning_autolog(training_source_path, target_col, n_est, max_depth
         'random_state': random_state
     }
 
-    mlflow.set_tracking_uri("file:///tmp/mlruns")
+    # 1. Check if the environment already specified a tracking URI (like /tmp/mlruns in CI)
+    # If not, fall back to the local directory path.
+    if not os.environ.get("MLFLOW_TRACKING_URI"):
+        local_mlruns_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "mlruns"))
+        mlflow.set_tracking_uri(f"file://{local_mlruns_path}")
+    else:
+        print(f"Using environment tracking URI: {os.environ.get('MLFLOW_TRACKING_URI')}")
+
+    # 2. Set the experiment name
+    mlflow.set_experiment(f"{target_col}_Autolog")
+
+    # 3. Enable autologging AFTER setting the URI and experiment context
+    mlflow.sklearn.autolog()
     mlflow.set_experiment(f"{target_col}_Autolog")
 
     # Set the experiment name
     mlflow.sklearn.autolog()
 
     for params in ParameterGrid(param_grid):
-        with mlflow.start_run(run_name=f"RF_est_{params['n_estimators']}_depth_{params['max_depth']}", nested=True):
+        with mlflow.start_run(run_name=f"RF_est_{params['n_estimators']}_depth_{params['max_depth']}"):
             model = RandomForestClassifier(**params)
 
             model.fit(X_train, y_train)
