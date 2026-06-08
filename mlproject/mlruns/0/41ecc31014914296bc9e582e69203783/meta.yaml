@@ -1,0 +1,15 @@
+artifact_uri: file:///home/runner/work/workflow_ci_david-richa/workflow_ci_david-richa/mlproject/mlruns/0/41ecc31014914296bc9e582e69203783/artifacts
+end_time: 1780936453452
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 41ecc31014914296bc9e582e69203783
+run_name: tasteful-ox-988
+run_uuid: 41ecc31014914296bc9e582e69203783
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1780936377024
+status: 3
+tags: []
+user_id: runner

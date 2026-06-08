@@ -1,0 +1,15 @@
+artifact_uri: file:///home/runner/work/workflow_ci_david-richa/workflow_ci_david-richa/mlproject/mlruns/0/cf73f842d1b04f37b3d3cff0143a01d4/artifacts
+end_time: 1780936431762
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: cf73f842d1b04f37b3d3cff0143a01d4
+run_name: RF_est_150_depth_None
+run_uuid: cf73f842d1b04f37b3d3cff0143a01d4
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1780936428095
+status: 3
+tags: []
+user_id: runner
