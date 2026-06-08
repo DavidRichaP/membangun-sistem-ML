@@ -84,7 +84,7 @@ jobs:
           
           echo "Building docker image using model from: $MODEL_URI"
           
-          export MLFLOW_DOCKER_BASE_IMAGE = "python:3.12-slim"
+          export MLFLOW_DOCKER_BASE_IMAGE="python:3.12-slim"
 
           mlflow models build-docker \
             -m "$MODEL_URI" \
