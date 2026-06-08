@@ -36,7 +36,7 @@ jobs:
           MLFLOW_ALLOW_FILE_STORE: "true"
           MLFLOW_TRACKING_URI: "file://${{ github.workspace }}/workflow-ci/mlproject/mlruns"
         run: |
-          cd workflow-ci/mlproject
+          cd workflow-ci_david-richa/mlproject
           
           # Membersihkan sisa data eksekusi lokal sebelumnya agar bersih
           rm -rf mlruns .mlflow mlflow.db
