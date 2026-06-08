@@ -31,15 +31,8 @@ jobs:
         shell: bash -el {0}
         run: |
           cd workflow-ci/mlproject
-          
-          # 1. Thoroughly scrub any old database artifacts from the workspace
           rm -rf mlruns .mlflow mlflow.db
-          
-          # 2. Force the tracking URI globally so the isolated Conda environments can see it
-          echo "MLFLOW_TRACKING_URI=file://${PWD}/mlruns" >> $GITHUB_ENV
-          
-          # 3. Execute your MLflow run
-          mlflow run . --env-manager=conda -P df_path=data.csv
+          mlflow run . --env-manager=conda -P df_path="gender_classif_v7_preprocessed.csv"
 
       - name: save mlruns to repo
         run: |

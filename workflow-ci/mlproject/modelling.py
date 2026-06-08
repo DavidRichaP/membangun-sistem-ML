@@ -33,6 +33,10 @@ def hyperparam_tuning_autolog(training_source_path, target_col, n_est, max_depth
 
     # Set the experiment name
     mlflow.sklearn.autolog()
+
+    local_mlruns_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "mlruns"))
+    mlflow.set_tracking_uri(f"file://{local_mlruns_path}")
+
     mlflow.set_experiment(f"{target_col}_Autolog")
 
     for params in ParameterGrid(param_grid):
