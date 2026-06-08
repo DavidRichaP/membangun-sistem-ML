@@ -33,23 +33,26 @@ def hyperparam_tuning_autolog(training_source_path, target_col, n_est, max_depth
 
     # Set the experiment name
     mlflow.sklearn.autolog()
-    mlflow.set_experiment("Wine_Quality_Autolog_func_update")
+    mlflow.set_experiment(f"{target_col}_Autolog")
 
     for params in ParameterGrid(param_grid):
         with mlflow.start_run(run_name=f"RF_est_{params['n_estimators']}_depth_{params['max_depth']}", nested=True):
             model = RandomForestClassifier(**params)
 
-            model.fit(X_train, y_train) 
+            model.fit(X_train, y_train)
 
             model.score(X_test, y_test)
+
+            print(f"Finished run with params: {params}")
 
 
 if __name__ == "__main__":
     n_est = [50, 100, 150]
     max_depth = [None, 10, 20]
     random_state = [42]
-    results = hyperparam_tuning_autolog("winequality-red_preprocessed.csv",
-                                        "quality",
+    results = hyperparam_tuning_autolog("gender_classif_v7_preprocessed.csv",
+                                        "gender",
                                         n_est,
                                         max_depth,
-                                        random_state)
+                                        random_state
+                                        )
