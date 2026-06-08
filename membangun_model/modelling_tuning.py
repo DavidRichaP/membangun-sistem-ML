@@ -33,7 +33,7 @@ def hyperparam_tuning(training_source_path, target_col):
     }
 
     # Set the experiment name
-    mlflow.set_experiment("Wine_Quality_Manual_Tuning")
+    mlflow.set_experiment(f"{target_col}_Manual_Tuning")
 
     for params in ParameterGrid(param_grid):
         with mlflow.start_run(run_name=f"RF_est_{params['n_estimators']}_depth_{params['max_depth']}", nested=True):
@@ -64,4 +64,4 @@ def hyperparam_tuning(training_source_path, target_col):
 
 
 if __name__ == "__main__":
-    results = hyperparam_tuning("winequality-red_preprocessed.csv", "quality")
+    results = hyperparam_tuning("gender_classif_v7_preprocessed.csv", "gender")
