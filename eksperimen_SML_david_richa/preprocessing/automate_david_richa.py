@@ -1,6 +1,7 @@
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import LabelEncoder
 import pandas as pd
 
 # menerima dataset yang sudah di load sebelumnya
@@ -15,12 +16,18 @@ def preprocess(data, target_col, file_path, threshold=6.5):
     data = data.drop_duplicates()
     print(f"Ukuran data setelah hapus duplikat: {data.shape}")
 
-    # encoding quality
-    data[target_col] = (data[target_col] > threshold).astype(int)
-    print(f"kolom", [target_col], "encoding quality sedang diproses")
+    num_features = data.select_dtypes(include=['float64']).columns.tolist()
+    print("kolom kontinu terdeteksi")
 
-    num_features = data.select_dtypes(include=['float64', 'int64']).columns.tolist()
-    print("kolom numerik terdeteksi")
+    int_features = data.select_dtypes(include=['int64']).columns.tolist()
+
+    label = data[target_col]
+    print("label terdeteksi")
+
+    le = LabelEncoder()
+
+    y_encoded = le.fit_transform(label)
+    print('encoding selesai')
 
     # Mendapatkan nama kolom tanpa kolom target
     column_names = data.columns.drop(target_col)
@@ -45,17 +52,18 @@ def preprocess(data, target_col, file_path, threshold=6.5):
     preprocessor = ColumnTransformer(
         transformers=[
             ('num', num_pipeline, num_features)
-        ]
+        ],
+        remainder='passthrough'
     )
 
     # Memisahkan target
     X = data.drop(columns=[target_col])
-    y = data[target_col]
+    y = y_encoded
 
     # Membagi data
     X_scaled = preprocessor.fit_transform(X)
-    df_preprocessed = pd.DataFrame(X_scaled, columns=num_features)
-    df_preprocessed[target_col] = y.values
+    df_preprocessed = pd.DataFrame(X_scaled, columns=num_features + int_features)
+    df_preprocessed[target_col] = y
 
     df_preprocessed.to_csv(file_path, index=False)
     print(f"Hasil preprocessing berhasil disimpan ke: {file_path}")
@@ -65,8 +73,8 @@ def preprocess(data, target_col, file_path, threshold=6.5):
 
 if __name__ == "__main__":
     print("memulai preprocessing")
-    data = pd.read_csv('../winequality-red_raw.csv')
+    data = pd.read_csv('../gender_classification_v7.csv')
     ready_data = preprocess(data,
-                            "quality",
-                            'winequality-red_preprocessed.csv')
+                            "gender",
+                            'gender_classif_v7_preprocessed.csv')
     print("preprocessing selesai")
