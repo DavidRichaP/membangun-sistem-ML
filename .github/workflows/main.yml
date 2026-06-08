@@ -72,7 +72,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 8. Hasilkan Artifact Model, Ratakan Struktur Direktori, dan Bangun via Docker CLI
+# 8. Hasilkan Artifact Model, Ratakan Struktur Direktori Semantik, dan Bangun via Docker CLI
       - name: Build Custom Production Docker Image
         shell: bash -el {0}
         run: |
@@ -103,11 +103,16 @@ jobs:
 
           RUN pip install --no-cache-dir mlflow==2.19.0 gevent gunicorn
 
-          # FIX 1: Salin isi dari 'model_dir' langsung ke root target '/opt/ml/model'
-          # Langkah ini menempatkan file 'MLmodel' dan 'conda.yaml' tepat di posisi yang dicari MLflow
-          COPY model_dir/ /opt/ml/model/
+          # 1. Salin seluruh isi build context ke folder staging sementara
+          COPY . /tmp/model_staging/
 
-          # FIX 2: DYNAMIC ENVIRONMENT PATCH (Disesuaikan ke path flat yang baru)
+          # 2. Paksa perataan struktur file menggunakan shell copy asli (cp -r)
+          # Ini menjamin MLmodel, conda.yaml, dan model.pkl duduk sejajar di dalam /opt/ml/model/
+          RUN mkdir -p /opt/ml/model && \
+              cp -r /tmp/model_staging/model_dir/* /opt/ml/model/ && \
+              rm -rf /tmp/model_staging
+
+          # 3. DYNAMIC ENVIRONMENT PATCH (Menangani dependensi pip/conda secara lokal)
           RUN cd /opt/ml/model && \
               if [ -f "requirements.txt" ]; then \
                 echo "Using existing requirements.txt"; \
@@ -133,7 +138,6 @@ jobs:
           echo "Compiling your custom high-performance production image..."
           cd output_docker
           docker build -t "${{ secrets.DOCKERHUB_USERNAME }}/dicoding-ml-pipeline:latest" .
-
       # 9. Mengirimkan image yang berhasil dibuat ke Docker Hub repositori remote
       - name: Push Image to Docker Hub
         run: |
