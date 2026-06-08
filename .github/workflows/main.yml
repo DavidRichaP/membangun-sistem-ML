@@ -34,7 +34,8 @@ jobs:
         shell: bash -el {0}
         env: 
           MLFLOW_ALLOW_FILE_STORE: "true"
-          MLFLOW_TRACKING_URI: "file://${{ github.workspace }}/workflow-ci/mlproject/mlruns"
+          # PERBAIKAN: Diubah dari workflow-ci ke mlproject agar sesuai struktur repo
+          MLFLOW_TRACKING_URI: "file://${{ github.workspace }}/mlproject/mlruns"
         run: |
           cd mlproject
           
@@ -50,12 +51,19 @@ jobs:
           git config --global user.name "${{ secrets.username }}"
           git config --global user.email "${{ secrets.email }}"
           
-          git add mlproject/mlruns/
-          if ! git diff --cached --quiet; then
-            git commit -m "save mlruns from CI run [skip ci]"
-            git push origin main
+          # Antisipasi error jika folder mlruns belum/gagal terbentuk
+          if [ -d "mlproject/mlruns" ]; then
+            git add mlproject/mlruns/
+            
+            if ! git diff --cached --quiet; then
+              git commit -m "save mlruns from CI run [skip ci]"
+              git push origin main
+            else
+              echo "no new mlflow tracking changes detected. skipping commit"
+            fi
           else
-            echo "no new mlflow tracking changes detected. skipping commit"
+            echo "Warning: mlproject/mlruns tidak ditemukan. MLflow run kemungkinan gagal."
+            exit 1
           fi
 
       # 6. Mengunggah pelacakan metrik ke GitHub Artifacts
@@ -63,4 +71,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mlflow-tracking-data
-          path: workflow-ci/mlproject/mlruns/
+          # PERBAIKAN: Diubah ke path yang benar agar artifact bisa terupload
+          path: mlproject/mlruns/
