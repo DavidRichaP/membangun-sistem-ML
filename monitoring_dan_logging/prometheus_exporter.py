@@ -43,8 +43,8 @@ class MonitoredWrapper(mlflow.pyfunc.PythonModel):
         self.error_counter = Counter('model_errors_total', 'Total inference crashes')
 
         # gauges incoming feature
-        self.alcohol_gauge = Gauge('incoming_feature_alcohol_value',
-                                   'snapshot of the alcohol feature value from the latest request row'
+        self.alcohol_gauge = Gauge('incoming_feature_forehead_height_cm_value',
+                                   'snapshot of the forehead heigh feature value from the latest request row'
                                    )
 
         # gauges predicted quality value
@@ -60,9 +60,9 @@ class MonitoredWrapper(mlflow.pyfunc.PythonModel):
 
         try:
             # 1. NEW METRIC: Track input feature (Data Drift Proxy)
-            # Grabs the last row of the 'alcohol' column from the incoming DataFrame
-            if hasattr(model_input, 'columns') and 'alcohol' in model_input.columns:
-                self.alcohol_gauge.set(float(model_input['alcohol'].iloc[-1]))
+            # Grabs the last row of the 'forehead_height_cm' column from the incoming DataFrame
+            if hasattr(model_input, 'columns') and 'forehead_height_cm' in model_input.columns:
+                self.alcohol_gauge.set(float(model_input['forehead_height_cm'].iloc[-1]))
 
             # Your original prediction logic
             predictions = self.model.predict(model_input)
@@ -89,7 +89,7 @@ class MonitoredWrapper(mlflow.pyfunc.PythonModel):
 if __name__ == "__main__":
     print("memulai pembacaan model")
     # arahkan variabel ini ke path dari ID run yang ingin digunakan
-    AUTOLOG_MODEL_URI = "./mlruns/models/968791154692521892/e55626dec82a478d81efdd26b9f03913/artifacts/model"
+    AUTOLOG_MODEL_URI = "./mlruns/models/732485172352797306/45ba7b4c417e454eb6e66f4791d9b48a/artifacts/model"
 
     # Instantiate our wrapper
     wrapped_model = MonitoredWrapper(autolog_model_uri=AUTOLOG_MODEL_URI)

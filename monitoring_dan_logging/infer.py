@@ -4,23 +4,19 @@ import requests
 # endpoint listen model
 URL = "http://localhost:5001/invocations"
 
-df = pd.read_csv("winequality-red_preprocessed.csv")
+df = pd.read_csv("gender_classif_v7_preprocessed.csv")
 
 if "quality" in df.columns:
-    df = df.drop(columns=["quality"])
+    df = df.drop(columns=["gender"])
 
 features = [
-    "fixed acidity",
-    "volatile acidity",
-    "citric acid",
-    "residual sugar",
-    "chlorides",
-    "free sulfur dioxide",
-    "total sulfur dioxide",
-    "density",
-    "pH",
-    "sulphates",
-    "alcohol"
+    "forehead_width_cm",
+    "forehead_height_cm",
+    "long_hair",
+    "nose_wide",
+    "nose_long",
+    "lips_thin",
+    "distance_nose_to_lip_long"
 ]
 
 df = df[features]
