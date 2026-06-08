@@ -72,7 +72,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 8. Hasilkan Dockerfile, Bersihkan Baris Python Secara Total, Jalankan Docker CLI
       # 8. Hasilkan Artifact Model, Pasang Tools Kompilasi, dan Bangun via Docker CLI
       - name: Build Custom Production Docker Image
         shell: bash -el {0}
@@ -87,13 +86,15 @@ jobs:
             -d "output_docker" \
             --env-manager=virtualenv
 
-          # DEBUG: Intip isi requirements.txt bawaan model agar Anda tahu persis apa saja yang akan diinstall pip
+          # FIX: Membaca file requirements langsung dari root folder 'output_docker'
           echo "=== MODEL REQUIREMENTS.TXT DETECTED ==="
-          if [ -f "output_docker/modeldir/requirements.txt" ]; then
-            cat output_docker/modeldir/requirements.txt
+          if [ -f "output_docker/requirements.txt" ]; then
+            cat output_docker/requirements.txt
+          elif [ -f "output_docker/conda.yaml" ]; then
+            echo "requirements.txt not found, showing conda.yaml instead:"
+            cat output_docker/conda.yaml
           else
-            echo "requirements.txt not found, checking alternative conda.yaml:"
-            cat output_docker/modeldir/conda.yaml
+            echo "No environment specification file found in root!"
           fi
           echo "======================================="
 
@@ -103,7 +104,7 @@ jobs:
           # Build an image that can serve mlflow models.
           FROM python:3.12.7-slim
 
-          # FIX 1: Pasang gcc dan build-essential karena python-slim tidak memiliki compiler C/C++ bawaan
+          # Pasang gcc dan build-essential karena python-slim tidak memiliki compiler C/C++ bawaan
           RUN apt-get -y update && apt-get install -y --no-install-recommends \
               nginx \
               build-essential \
@@ -114,9 +115,13 @@ jobs:
 
           RUN pip install --no-cache-dir mlflow==2.19.0 gevent gunicorn
 
+          # Tetap salin folder model_dir ke direktori internal container
           COPY model_dir/ /opt/ml/model
 
-          # FIX 2: Jalankan instalasi dependensi model. Jika gagal, error asli pip akan dicetak jelas di console log.
+          # Salin file requirements.txt ke lokasi yang dicari oleh C._install_pyfunc_deps
+          COPY requirements.txt /opt/ml/model/requirements.txt
+
+          # Jalankan instalasi dependensi model asli
           RUN python -c "from mlflow.models import container as C; C._install_pyfunc_deps('/opt/ml/model', install_mlflow=False, enable_mlserver=False, env_manager='local');"
 
           ENV MLFLOW_DISABLE_ENV_CREATION=True
