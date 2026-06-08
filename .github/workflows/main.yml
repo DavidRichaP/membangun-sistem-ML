@@ -89,7 +89,12 @@ jobs:
 
           # DEBUG: Intip isi requirements.txt bawaan model agar Anda tahu persis apa saja yang akan diinstall pip
           echo "=== MODEL REQUIREMENTS.TXT DETECTED ==="
-          cat output_docker/model_dir/requirements.txt
+          if [ -f "output_docker/modeldir/requirements.txt" ]; then
+            cat output_docker/modeldir/requirements.txt
+          else
+            echo "requirements.txt not found, checking alternative conda.yaml:"
+            cat output_docker/modeldir/conda.yaml
+          fi
           echo "======================================="
 
           echo "Overwriting MLflow's template with custom Python 3.12.7-slim Dockerfile..."
@@ -126,7 +131,7 @@ jobs:
           echo "Compiling your custom high-performance production image..."
           cd output_docker
           docker build -t "${{ secrets.DOCKERHUB_USERNAME }}/dicoding-ml-pipeline:latest" .
-          
+
       # 9. Mengirimkan image yang berhasil dibuat ke Docker Hub repositori remote
       - name: Push Image to Docker Hub
         run: |
